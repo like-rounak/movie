@@ -28,7 +28,7 @@ const SearchList = ({
           <img
             src={movie.Poster}
             alt={movie.Title}
-            style={{ width: '100px', height: '150px', marginRight: '10px' }}
+            style={{ width: '50px', height: '75px', marginRight: '10px' }}
           />
           <div>
             <h2>{movie.Title}</h2>

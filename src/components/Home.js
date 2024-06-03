@@ -3,7 +3,6 @@ import axios from 'axios';
 import Sidebar from './Sidebar';
 import SearchList from './SearchList';
 import SearchBar from './SearchBar';
-import UserActions from './UserActions';
 import SelectedList from './SelectedList';
 import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
@@ -23,6 +22,7 @@ const Home = () => {
   const [user, setUser] = useState(null);
   const [lists, setLists] = useState([]);
   const [selectedAddToListId, setSelectedAddToListId] = useState(null);
+  const [showSignInPopup, setShowSignInPopup] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -121,14 +121,17 @@ const Home = () => {
   };
 
   const handleAddToListClick = (movie) => {
-    addMovieToList(movie);
+    if (!user) {
+      setShowSignInPopup(true);
+    } else {
+      addMovieToList(movie);
+    }
   };
 
   return (
     <div style={{ display: 'flex' }}>
       <Sidebar onListSelect={setSelectedListId} />
       <div style={{ flex: 1, padding: '20px' }}>
-        <UserActions user={user} onSignOut={handleSignOut} />
         <h1 style={{ color: '#007BFF' }}>Movie Search</h1>
         <SearchBar search={search} setSearch={setSearch} searchMovies={searchMovies} />
         {loading ? (
@@ -153,6 +156,14 @@ const Home = () => {
             visibility={selectedListVisibility}
             onRemoveMovie={removeMovieFromList}
           />
+        )}
+        {showSignInPopup && (
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', padding: '20px', backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '5px', zIndex: 1000 }}>
+            <p>Please sign in to access this feature.</p>
+            <button onClick={() => navigate('/signin')}>Sign In</button>
+            <button onClick={() => navigate('/signup')}>Sign Up</button>
+            <button onClick={() => setShowSignInPopup(false)}>Close</button>
+          </div>
         )}
       </div>
     </div>

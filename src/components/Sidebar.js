@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import CreateListModal from './CreateListModal';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, getDocs, addDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 const db = getFirestore();
 
@@ -11,6 +12,9 @@ const Sidebar = ({ onListSelect }) => {
   const [showCreateListModal, setShowCreateListModal] = useState(false);
   const auth = getAuth();
   const user = auth.currentUser;
+  const navigate = useNavigate();
+
+  
 
   useEffect(() => {
     if (user) {
