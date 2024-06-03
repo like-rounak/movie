@@ -75,13 +75,13 @@ const Home = () => {
   setError(null);
   try {
     console.log('Before API call'); 
-    const response = await axios.get(`http://www.omdbapi.com/?apikey=47ae321&s=${search}`);
+    const response = await axios.get(`https://www.omdbapi.com/?apikey=47ae321&s=${search}`);
     console.log('After API call'); 
     if (response.data.Response === 'True') {
       const detailedMovies = await Promise.all(
         response.data.Search.map(async (movie) => {
           console.log('Before detailed movie API call'); 
-          const movieDetailsResponse = await axios.get(`http://www.omdbapi.com/?apikey=47ae321&i=${movie.imdbID}`);
+          const movieDetailsResponse = await axios.get(`https://www.omdbapi.com/?apikey=47ae321&i=${movie.imdbID}`);
           console.log('After detailed movie API call'); 
           return movieDetailsResponse.data;
         })
