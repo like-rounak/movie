@@ -1,3 +1,5 @@
+// components/MovieDetails.js
+
 import React from 'react';
 
 const MovieDetails = ({ movie, onAddMovieClick, onRemoveMovieClick }) => (

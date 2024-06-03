@@ -1,3 +1,5 @@
+// /components/Movie.js
+
 import React from 'react';
 
 const Movie = ({ movie, onMovieClick }) => (

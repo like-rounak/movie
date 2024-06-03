@@ -1,8 +1,9 @@
+// /components/Home.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import MovieList from './MovieList';
-import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
@@ -31,14 +32,18 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const fetchLists = async () => {
-      const listsSnapshot = await getDocs(collection(db, 'movieLists'));
-      const listsData = listsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setLists(listsData);
-    };
+    if (user) {
+      const fetchLists = async () => {
+        const listsSnapshot = await getDocs(collection(db, 'movieLists'));
+        const listsData = listsSnapshot.docs
+          .filter(doc => doc.data().userId === user.uid)
+          .map(doc => ({ id: doc.id, ...doc.data() }));
+        setLists(listsData);
+      };
 
-    fetchLists();
-  }, []);
+      fetchLists();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (selectedListId) {
@@ -109,6 +114,18 @@ const Home = () => {
     });
   };
 
+  const removeMovieFromList = async (movie) => {
+    if (!selectedListId) {
+      alert('No list selected.');
+      return;
+    }
+    const listRef = doc(db, 'movieLists', selectedListId);
+    await updateDoc(listRef, {
+      movies: arrayRemove(movie),
+    });
+    setSelectedListMovies(selectedListMovies.filter(m => m.imdbID !== movie.imdbID));
+  };
+
   const handleAddToListClick = (movie) => {
     addMovieToList(movie);
   };
@@ -153,8 +170,8 @@ const Home = () => {
                   >
                     {selectedListMovies.some((m) => m.imdbID === movie.imdbID) ? 'Already in List' : 'Add to List'}
                   </button>
-                  <select onChange={(e) => setSelectedAddToListId(e.target.value)} value={selectedAddToListId || ''}>
-                    <option value="" disabled>Select List</option>
+                  <select onChange={(e) => setSelectedAddToListId(e.target.value)} value={selectedAddToListId} style={{ marginLeft: '10px' }}>
+                    <option value=''>Select a list</option>
                     {lists.map(list => (
                       <option key={list.id} value={list.id}>{list.name}</option>
                     ))}
@@ -164,7 +181,14 @@ const Home = () => {
             ))}
           </div>
         )}
-        {selectedListId && <MovieList movies={selectedListMovies} listId={selectedListId} visibility={selectedListVisibility} />}
+        {selectedListId && (
+          <MovieList
+            movies={selectedListMovies}
+            listId={selectedListId}
+            visibility={selectedListVisibility}
+            onRemoveMovie={removeMovieFromList}
+          />
+        )}
       </div>
     </div>
   );

@@ -1,48 +1,60 @@
+// /components/Sidebar.js
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, getDocs, addDoc } from 'firebase/firestore';
 import CreateListModal from './CreateListModal';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, getDocs, addDoc } from 'firebase/firestore';
 
 const db = getFirestore();
 
 const Sidebar = ({ onListSelect }) => {
   const [lists, setLists] = useState([]);
   const [showCreateListModal, setShowCreateListModal] = useState(false);
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   useEffect(() => {
-    const fetchLists = async () => {
-      const listsSnapshot = await getDocs(collection(db, 'movieLists'));
-      const listsData = listsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setLists(listsData);
-    };
+    if (user) {
+      const fetchLists = async () => {
+        const listsSnapshot = await getDocs(collection(db, 'movieLists'));
+        const userLists = listsSnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(list => list.userId === user.uid);
+        setLists(userLists);
+      };
 
-    fetchLists();
-  }, []);
-
-  const handleListClick = (list) => {
-    onListSelect(list.id);
-  };
+      fetchLists();
+    }
+  }, [user]);
 
   const handleCreateList = async (listName, visibility) => {
-    await addDoc(collection(db, 'movieLists'), { name: listName, visibility: visibility, movies: [] });
+    await addDoc(collection(db, 'movieLists'), { name: listName, visibility: visibility, movies: [], userId: user.uid });
     setShowCreateListModal(false);
-    // Refresh the lists after creating a new one
     const listsSnapshot = await getDocs(collection(db, 'movieLists'));
-    const listsData = listsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    setLists(listsData);
+    const userLists = listsSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(list => list.userId === user.uid);
+    setLists(userLists);
   };
 
   return (
-    <div style={{ width: '250px', padding: '20px', borderRight: '1px solid #ddd' }}>
-      <h2>My Lists</h2>
-      <button onClick={() => setShowCreateListModal(true)}>Create List</button>
+    <div style={{ width: '250px', borderRight: '1px solid #ddd', padding: '20px' }}>
+      <h2>Your Lists</h2>
       <ul>
         {lists.map(list => (
-          <li key={list.id} onClick={() => handleListClick(list)} style={{ cursor: 'pointer', marginBottom: '10px' }}>
+          <li key={list.id} style={{ cursor: 'pointer', padding: '5px 0' }} onClick={() => onListSelect(list.id)}>
             {list.name}
           </li>
         ))}
       </ul>
-      {showCreateListModal && <CreateListModal onCreate={handleCreateList} onClose={() => setShowCreateListModal(false)} />}
+      <button onClick={() => setShowCreateListModal(true)} style={{ marginTop: '10px', backgroundColor: '#007BFF', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px' }}>
+        Create New List
+      </button>
+      {showCreateListModal && (
+        <CreateListModal
+          onCreate={handleCreateList}
+          onClose={() => setShowCreateListModal(false)}
+        />
+      )}
     </div>
   );
 };

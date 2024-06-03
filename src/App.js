@@ -1,3 +1,5 @@
+// App.js
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navigation from './Navigation';
@@ -5,6 +7,7 @@ import Home from './components/Home';
 import SignUp from './components/SignUp';
 import SignIn from './components/SignIn';
 import MovieDetails from './components/MovieDetails';
+import MovieDetailsPage from './components/MovieDetailsPage';
 import ListView from './components/ListView';
 import './App.css';
 
@@ -17,7 +20,8 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
-          <Route path="/movie/:imdbID" element={<MovieDetails />} />
+          
+          <Route path="/movie/:imdbID" element={<MovieDetailsPage />} />
           <Route path="/list/:listId" element={<ListView />} />
         </Routes>
       </div>
