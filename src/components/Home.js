@@ -70,28 +70,32 @@ const Home = () => {
   };
 
   const searchMovies = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get(`http://www.omdbapi.com/?apikey=47ae321&s=${search}`);
-      if (response.data.Response === 'True') {
-        const detailedMovies = await Promise.all(
-          response.data.Search.map(async (movie) => {
-            const movieDetailsResponse = await axios.get(`http://www.omdbapi.com/?apikey=47ae321&i=${movie.imdbID}`);
-            return movieDetailsResponse.data;
-          })
-        );
-        setMovies(detailedMovies);
-      } else {
-        setError('No movies found');
-        setMovies([]);
-      }
-    } catch (err) {
-      setError('An error occurred while searching for movies.');
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
+  try {
+    console.log('Before API call'); 
+    const response = await axios.get(`http://www.omdbapi.com/?apikey=47ae321&s=${search}`);
+    console.log('After API call'); 
+    if (response.data.Response === 'True') {
+      const detailedMovies = await Promise.all(
+        response.data.Search.map(async (movie) => {
+          console.log('Before detailed movie API call'); 
+          const movieDetailsResponse = await axios.get(`http://www.omdbapi.com/?apikey=47ae321&i=${movie.imdbID}`);
+          console.log('After detailed movie API call'); 
+          return movieDetailsResponse.data;
+        })
+      );
+      setMovies(detailedMovies);
+    } else {
+      setError('No movies found');
+      setMovies([]);
     }
-    setLoading(false);
-  };
+  } catch (err) {
+    setError('An error occurred while searching for movies.');
+  }
+  setLoading(false);
+};
 
   const handleMovieClick = (imdbID) => {
     navigate(`/movie/${imdbID}`);
