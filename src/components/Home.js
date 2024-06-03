@@ -1,8 +1,10 @@
-// /components/Home.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
-import MovieList from './MovieList';
+import SearchList from './SearchList';
+import SearchBar from './SearchBar';
+import UserActions from './UserActions';
+import SelectedList from './SelectedList';
 import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -67,14 +69,6 @@ const Home = () => {
     }
   };
 
-  const handleSignInClick = () => {
-    navigate('/signin');
-  };
-
-  const handleSignUpClick = () => {
-    navigate('/signup');
-  };
-
   const searchMovies = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -134,55 +128,26 @@ const Home = () => {
     <div style={{ display: 'flex' }}>
       <Sidebar onListSelect={setSelectedListId} />
       <div style={{ flex: 1, padding: '20px' }}>
-        {user ? (
-          <>
-            <button onClick={handleSignOut}>Sign Out</button>
-          </>
-        ) : (
-          <>
-            <button onClick={handleSignInClick}>Sign In</button>
-            <button onClick={handleSignUpClick}>Sign Up</button>
-          </>
-        )}
+        <UserActions user={user} onSignOut={handleSignOut} />
         <h1 style={{ color: '#007BFF' }}>Movie Search</h1>
-        <form onSubmit={searchMovies}>
-          <input type='text' value={search} onChange={(e) => setSearch(e.target.value)} style={{ margin: '10px 0' }} />
-          <button type='submit' style={{ backgroundColor: '#007BFF', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px' }}>
-            Search
-          </button>
-        </form>
-        {loading ? <p>Loading...</p> : error ? <p style={{ color: 'red' }}>Error: {error}</p> : (
-          <div>
-            {movies.map(movie => (
-              <div key={movie.imdbID} style={{ borderBottom: '1px solid #ddd', padding: '10px 0' }}>
-                <h2>{movie.Title}</h2>
-                <p><strong>Year:</strong> {movie.Year}</p>
-                <p><strong>Genre:</strong> {movie.Genre}</p>
-                <p><strong>Actors:</strong> {movie.Actors}</p>
-                <button onClick={() => handleMovieClick(movie.imdbID)} style={{ marginRight: '10px' }}>
-                  View Details
-                </button>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <button
-                    onClick={() => handleAddToListClick(movie)}
-                    disabled={selectedListMovies.some((m) => m.imdbID === movie.imdbID)}
-                    style={{ backgroundColor: selectedListMovies.some((m) => m.imdbID === movie.imdbID) ? 'gray' : '#007BFF', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', marginRight: '10px' }}
-                  >
-                    {selectedListMovies.some((m) => m.imdbID === movie.imdbID) ? 'Already in List' : 'Add to List'}
-                  </button>
-                  <select onChange={(e) => setSelectedAddToListId(e.target.value)} value={selectedAddToListId} style={{ marginLeft: '10px' }}>
-                    <option value=''>Select a list</option>
-                    {lists.map(list => (
-                      <option key={list.id} value={list.id}>{list.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            ))}
-          </div>
+        <SearchBar search={search} setSearch={setSearch} searchMovies={searchMovies} />
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p style={{ color: 'red' }}>Error: {error}</p>
+        ) : (
+          <SearchList
+            movies={movies}
+            selectedListMovies={selectedListMovies}
+            lists={lists}
+            selectedAddToListId={selectedAddToListId}
+            setSelectedAddToListId={setSelectedAddToListId}
+            handleAddToListClick={handleAddToListClick}
+            handleMovieClick={handleMovieClick}
+          />
         )}
         {selectedListId && (
-          <MovieList
+          <SelectedList
             movies={selectedListMovies}
             listId={selectedListId}
             visibility={selectedListVisibility}
