@@ -22,8 +22,8 @@ const Sidebar = ({ onListSelect }) => {
     onListSelect(list.id);
   };
 
-  const handleCreateList = async (listName) => {
-    await addDoc(collection(db, 'movieLists'), { name: listName, movies: [] });
+  const handleCreateList = async (listName, visibility) => {
+    await addDoc(collection(db, 'movieLists'), { name: listName, visibility: visibility, movies: [] });
     setShowCreateListModal(false);
     // Refresh the lists after creating a new one
     const listsSnapshot = await getDocs(collection(db, 'movieLists'));

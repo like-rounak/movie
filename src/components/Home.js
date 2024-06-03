@@ -16,6 +16,7 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [selectedListId, setSelectedListId] = useState(null);
   const [selectedListMovies, setSelectedListMovies] = useState([]);
+  const [selectedListVisibility, setSelectedListVisibility] = useState(null);
   const [user, setUser] = useState(null);
   const [lists, setLists] = useState([]);
   const [selectedAddToListId, setSelectedAddToListId] = useState(null);
@@ -41,13 +42,14 @@ const Home = () => {
 
   useEffect(() => {
     if (selectedListId) {
-      const fetchListMovies = async () => {
+      const fetchListDetails = async () => {
         const listRef = doc(db, 'movieLists', selectedListId);
         const listSnapshot = await getDoc(listRef);
         setSelectedListMovies(listSnapshot.data().movies);
+        setSelectedListVisibility(listSnapshot.data().visibility);
       };
 
-      fetchListMovies();
+      fetchListDetails();
     }
   }, [selectedListId]);
 
@@ -162,7 +164,7 @@ const Home = () => {
             ))}
           </div>
         )}
-        {selectedListId && <MovieList movies={selectedListMovies} />}
+        {selectedListId && <MovieList movies={selectedListMovies} listId={selectedListId} visibility={selectedListVisibility} />}
       </div>
     </div>
   );
