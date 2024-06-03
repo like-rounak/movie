@@ -1,56 +1,48 @@
-// components/Sidebar.js
-import React, { useEffect, useState } from 'react';
-import { getAuth } from "firebase/auth";
-import { db } from '../firebaseConfig';
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore"; 
+import React, { useState, useEffect } from 'react';
+import { getFirestore, collection, getDocs, addDoc } from 'firebase/firestore';
+import CreateListModal from './CreateListModal';
+
+const db = getFirestore();
 
 const Sidebar = ({ onListSelect }) => {
-  const auth = getAuth();
-  const user = auth.currentUser;
   const [lists, setLists] = useState([]);
+  const [showCreateListModal, setShowCreateListModal] = useState(false);
 
   useEffect(() => {
     const fetchLists = async () => {
-      if (user) {
-        const q = query(collection(db, "movieLists"), where("userId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-        const fetchedLists = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setLists(fetchedLists);
-      }
+      const listsSnapshot = await getDocs(collection(db, 'movieLists'));
+      const listsData = listsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setLists(listsData);
     };
 
     fetchLists();
-  }, [user]);
+  }, []);
 
-  const createList = async () => {
-    const listName = prompt("Enter list name:");
-    if (listName) {
-      await addDoc(collection(db, "movieLists"), {
-        name: listName,
-        userId: user.uid,
-        public: false, // default to private
-      });
-      // fetch lists again after adding
-      const q = query(collection(db, "movieLists"), where("userId", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const fetchedLists = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setLists(fetchedLists);
-    }
+  const handleListClick = (list) => {
+    onListSelect(list.id);
+  };
+
+  const handleCreateList = async (listName) => {
+    await addDoc(collection(db, 'movieLists'), { name: listName, movies: [] });
+    setShowCreateListModal(false);
+    // Refresh the lists after creating a new one
+    const listsSnapshot = await getDocs(collection(db, 'movieLists'));
+    const listsData = listsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setLists(listsData);
   };
 
   return (
-    <div style={{ width: '250px', backgroundColor: '#f4f4f4', padding: '10px' }}>
-      <h3>My Lists</h3>
-      {user ? (
-        <div>
-          {lists.map(list => (
-            <div key={list.id} onClick={() => onListSelect(list.id)} style={{ cursor: 'pointer' }}>{list.name}</div>
-          ))}
-          <button onClick={createList}>Create New List</button>
-        </div>
-      ) : (
-        <p>Please log in to create and view lists</p>
-      )}
+    <div style={{ width: '250px', padding: '20px', borderRight: '1px solid #ddd' }}>
+      <h2>My Lists</h2>
+      <button onClick={() => setShowCreateListModal(true)}>Create List</button>
+      <ul>
+        {lists.map(list => (
+          <li key={list.id} onClick={() => handleListClick(list)} style={{ cursor: 'pointer', marginBottom: '10px' }}>
+            {list.name}
+          </li>
+        ))}
+      </ul>
+      {showCreateListModal && <CreateListModal onCreate={handleCreateList} onClose={() => setShowCreateListModal(false)} />}
     </div>
   );
 };
